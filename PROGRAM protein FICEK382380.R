@@ -1,0 +1,112 @@
+protein<-load("C:/Users/Maciej/Desktop/SAD/PROGRAM/protein.Rdata",verbose=TRUE)
+colnames(data.train)
+data.train<-as.data.frame(data.train)
+data.test<-as.data.frame(data.test)
+# okreslenie typu danych
+typ<-numeric(2001)
+for( i in 1:2001)
+typ[i]<-typeof(data.train[,i])
+typ<-as.factor(typ)
+# wybor predyktorow
+korelacje<-numeric(2000)
+korelacje<-cor(data.train[,],data.train[,2001])
+granica<-(abs(korelacje)>0.10)
+wybor<-numeric(2000)
+for ( i in 1:2000)
+  if(granica[i]==TRUE) wybor[i]=1
+vybor=c(0)
+for ( i in 1:2000)
+  if(wybor[i]==1)vybor<-c(vybor,i)
+WYBOR<-vybor[2:11]
+WYBOR
+# pierwszy model liniowy - dobra statystyka R2
+model<-lm(data.train[,2001]~data.train[,36]+data.train[,337]+data.train[,672]+data.train[,1205]+data.train[,1232]+data.train[,1456]+data.train[,1521]+data.train[,1521]+data.train[,1708]+data.train[,1815]+data.train[,1908],data=data.train)
+summary(model)
+data.train[,2001]
+# usuniecie 2 z 10 predyktorow
+korelacja<-cor(data.train[,WYBOR])
+WYBOR2<-c(36,672,1205,1456,1521,1708,1815,1908)
+model2<-lm(data.train[,2001]~data.train[,36]+data.train[,672]+data.train[,1205]+data.train[,1456]+data.train[,1521]+data.train[,1708]+data.train[,1815]+data.train[,1908],data=data.train)
+summary(model2)
+### wykonanie predykcji dla danych testowych - rêcznie
+PREDYKCJA<-numeric(500)
+for(i in 1:500)
+PREDYKCJA[i]<-sum(data.test[i,WYBOR2]*c(-1.9621070,5.2634560,0.6828034,-2.1444719,1.1576151,4.6849203,-0.3724924,0.8321983))
+PREDYKCJA<-PREDYKCJA+6.931
+#### 5 najwazniejszych predyktorow
+najwazniejsze<-cor(data.train[,WYBOR2],data.train[,2001])
+# regresja logistyczna
+modelprim<-glm(data.train[,2001]~data.train[,36]+data.train[,337]+data.train[,672]+data.train[,1205]+data.train[,1232]+data.train[,1456]+data.train[,1521]+data.train[,1521]+data.train[,1708]+data.train[,1815]+data.train[,1908],data=data.train,family=gaussian)
+summary(modelprim)
+modelprim2<-glm(data.train[,2001]~data.train[,36]+data.train[,672]+data.train[,1205]+data.train[,1232]+data.train[,1456]+data.train[,1521]+data.train[,1521]+data.train[,1708]+data.train[,1908],data=data.train,family=gaussian)
+summary(modelprim2)
+## walidacja krzyzowa recznie dla modelu liniowego
+w1<-c(1:200)
+w2<-c(201:400)
+w3<-c(401:600)
+w4<-c(601:800)
+w5<-c(801:1000)
+v1<-c(w2,w3,w4,w5)
+v2<-c(w1,w3,w4,w5)
+v3<-c(w1,w2,w4,w5)
+v4<-c(w1,w2,w3,w5)
+v5<-c(w1,w2,w3,w4)
+WYBOR3<-c(WYBOR2,2001)
+m1<-lm(data.train[v1,2001]~data.train[v1,36]+data.train[v1,672]+data.train[v1,1205]+data.train[v1,1456]+data.train[v1,1521]+data.train[v1,1708]+data.train[v1,1815]+data.train[v1,1908],data=data.train[v1,])
+m2<-lm(data.train[v2,2001]~data.train[v2,36]+data.train[v2,672]+data.train[v2,1205]+data.train[v2,1456]+data.train[v2,1521]+data.train[v2,1708]+data.train[v2,1815]+data.train[v2,1908],data=data.train[v2,])
+m3<-lm(data.train[v3,2001]~data.train[v3,36]+data.train[v3,672]+data.train[v3,1205]+data.train[v3,1456]+data.train[v3,1521]+data.train[v3,1708]+data.train[v3,1815]+data.train[v3,1908],data=data.train[v1,])
+m4<-lm(data.train[v4,2001]~data.train[v4,36]+data.train[v4,672]+data.train[v4,1205]+data.train[v4,1456]+data.train[v4,1521]+data.train[v4,1708]+data.train[v4,1815]+data.train[v4,1908],data=data.train[v1,])
+m5<-lm(data.train[v5,2001]~data.train[v5,36]+data.train[v5,672]+data.train[v5,1205]+data.train[v5,1456]+data.train[v5,1521]+data.train[v5,1708]+data.train[v5,1815]+data.train[v5,1908],data=data.train[v1,])
+p1<-numeric(200)
+for(i in 1:200)
+  p1[i]<-sum(c1*c(1,data.train[w1[i],WYBOR2]))
+MSE1<-sum((data.train[w1,2001]-p1[])**2)
+p2<-numeric(200)
+for(i in 1:200)
+  p2[i]<-sum(m2$coefficients*c(1,data.train[w2[i],WYBOR2]))
+MSE2<-sum((data.train[w2,2001]-p2[])**2)
+p3<-numeric(200)
+for(i in 1:200)
+  p3[i]<-sum(m3$coefficients*c(1,data.train[w3[i],WYBOR2]))
+MSE3<-sum((data.train[w3,2001]-p3[])**2)
+p4<-numeric(200)
+for(i in 1:200)
+  p4[i]<-sum(m4$coefficients*c(1,data.train[w4[i],WYBOR2]))
+MSE4<-sum((data.train[w4,2001]-p4[])**2)
+p5<-numeric(200)
+for(i in 1:200)
+  p5[i]<-sum(m5$coefficients*c(1,data.train[w5[i],WYBOR2]))
+MSE5<-sum((data.train[w5,2001]-p5[])**2)
+### MSE - ostateczny blad walidacji krzyzowej 
+MSE<-(MSE1+MSE2+MSE3+MSE4+MSE5)/5
+######## walidacja dla regresji logistycznej - gorszy MSEprim niz MSE
+mprim1<-glm(data.train[v1,2001]~data.train[v1,36]+data.train[v1,672]+data.train[v1,1205]+data.train[v1,1456]+data.train[v1,1521]+data.train[v1,1708]+data.train[v1,1815]+data.train[v1,1908],data=data.train[v1,])
+mprim2<-glm(data.train[v1,2001]~data.train[v1,36]+data.train[v1,672]+data.train[v1,1205]+data.train[v1,1456]+data.train[v1,1521]+data.train[v1,1708]+data.train[v1,1815]+data.train[v1,1908],data=data.train[v1,])
+mprim3<-glm(data.train[v1,2001]~data.train[v1,36]+data.train[v1,672]+data.train[v1,1205]+data.train[v1,1456]+data.train[v1,1521]+data.train[v1,1708]+data.train[v1,1815]+data.train[v1,1908],data=data.train[v1,])
+mprim4<-glm(data.train[v1,2001]~data.train[v1,36]+data.train[v1,672]+data.train[v1,1205]+data.train[v1,1456]+data.train[v1,1521]+data.train[v1,1708]+data.train[v1,1815]+data.train[v1,1908],data=data.train[v1,])
+mprim5<-glm(data.train[v1,2001]~data.train[v1,36]+data.train[v1,672]+data.train[v1,1205]+data.train[v1,1456]+data.train[v1,1521]+data.train[v1,1708]+data.train[v1,1815]+data.train[v1,1908],data=data.train[v1,])
+pprim1<-numeric(200)
+for(i in 1:200)
+  pprim1[i]<-sum(mprim1$coefficients*c(1,data.train[w1[i],WYBOR2]))
+MSEprim1<-sum((data.train[w1,2001]-pprim1[])**2)
+pprim2<-numeric(200)
+for(i in 1:200)
+  pprim2[i]<-sum(mprim2$coefficients*c(1,data.train[w2[i],WYBOR2]))
+MSEprim2<-sum((data.train[w2,2001]-pprim2[])**2)
+pprim3<-numeric(200)
+for(i in 1:200)
+  pprim3[i]<-sum(mprim3$coefficients*c(1,data.train[w3[i],WYBOR2]))
+MSEprim3<-sum((data.train[w3,2001]-pprim3[])**2)
+pprim4<-numeric(200)
+for(i in 1:200)
+  pprim4[i]<-sum(mprim4$coefficients*c(1,data.train[w4[i],WYBOR2]))
+MSEprim4<-sum((data.train[w4,2001]-pprim4[])**2)
+pprim5<-numeric(200)
+for(i in 1:200)
+  pprim5[i]<-sum(mprim5$coefficients*c(1,data.train[w5[i],WYBOR2]))
+MSEprim5<-sum((data.train[w5,2001]-pprim5[])**2)
+MSEprim<-(MSEprim1+MSEprim2+MSEprim3+MSEprim4+MSEprim5)/5
+##################
+###################################################
+
+PREDYKCJA
